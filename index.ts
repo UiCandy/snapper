@@ -2,6 +2,7 @@ import { handler, initBridge, method } from "bridge";
 import express from "express";
 import cors from "cors";
 import puppeteer from "puppeteer";
+import crypto from "crypto";
 
 const app = express();
 
@@ -33,6 +34,45 @@ const pupeteerHandler = handler({
     }
   },
 });
+
+const API_SECRET = "secret";
+
+app.use(
+  express.json({
+    verify: (req, res, buffer) => {
+      // @ts-ignore
+      req.rawBody = buffer;
+    },
+  })
+);
+
+app.post("/hook", (req, res) => {
+  const signature = _generateSignature(
+    req.method,
+    req.url,
+    req.headers["x-cs-timestamp"],
+    req.body
+  );
+
+  if (signature !== req.headers["x-cs-signature"]) {
+    return res.sendStatus(401);
+  }
+  // @ts-ignore
+  console.log("received webhook", req.rawBody);
+  res.sendStatus(200);
+});
+
+function _generateSignature(method, url, timestamp, body) {
+  const hmac = crypto.createHmac("SHA256", API_SECRET);
+
+  hmac.update(`${method.toUpperCase()}${url}${timestamp}`);
+
+  if (body) {
+    hmac.update(body);
+  }
+
+  return hmac.digest("hex");
+}
 
 const helloHandler = handler({
   resolve: async () => {
