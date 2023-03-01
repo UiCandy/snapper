@@ -13,20 +13,37 @@ const pupeteerHandler = handler({
       defaultViewport: null, //Defaults to an 800x600 viewport
       userDataDir: "./user_data",
     });
+
     try {
       const page = await browser.newPage();
+      const pageTarget = page.target();
+
       const ticker = params.body.chart.split("%3A")[1].split("&")[0];
-      await page.goto(params.body.chart);
+      await page.goto(params.body.chart, { waitUntil: "load" });
 
       // check if page  has loaded
       await page.waitForSelector(".first-_hkHmHWX");
       await page.waitForSelector("#header-toolbar-screenshot");
 
-      await page.screenshot({
-        path: `./data/${ticker}_screenshot.jpg`,
+      // click screenshot icon
+      await page.click("#header-toolbar-screenshot");
+      await page.click(
+        'div[data-name="open-image-in-new-tab"] .labelRow-RhC5uhZw'
+      );
+
+      const newTarget = await browser.waitForTarget(
+        (target) => target.opener() === pageTarget
+      );
+
+      const tvSnap: any = await newTarget.page();
+      await tvSnap.waitForSelector(".tv-snapshot-image", {
+        visible: true,
+        timeout: 0,
       });
 
-      return ticker;
+      const chartLink = tvSnap.url();
+
+      return [chartLink, ticker];
     } catch (error) {
       console.error(error);
     } finally {
@@ -34,45 +51,6 @@ const pupeteerHandler = handler({
     }
   },
 });
-
-// const API_SECRET = "secret";
-
-// app.use(
-//   express.json({
-//     verify: (req, res, buffer) => {
-//       // @ts-ignore
-//       req.rawBody = buffer;
-//     },
-//   })
-// );
-
-// app.post("/hook", (req, res) => {
-//   const signature = _generateSignature(
-//     req.method,
-//     req.url,
-//     req.headers["x-cs-timestamp"],
-//     req.body
-//   );
-
-//   if (signature !== req.headers["x-cs-signature"]) {
-//     return res.sendStatus(401);
-//   }
-//   // @ts-ignore
-//   console.log("received webhook", req.rawBody);
-//   res.sendStatus(200);
-// });
-
-// function _generateSignature(method, url, timestamp, body) {
-//   const hmac = crypto.createHmac("SHA256", API_SECRET);
-
-//   hmac.update(`${method.toUpperCase()}${url}${timestamp}`);
-
-//   if (body) {
-//     hmac.update(body);
-//   }
-
-//   return hmac.digest("hex");
-// }
 
 const repoHandler = handler({
   resolve: async (data: any) => {
