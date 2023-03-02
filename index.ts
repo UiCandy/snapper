@@ -20,6 +20,8 @@ const pupeteerHandler = handler({
     try {
       const page = await browser.newPage();
       page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
+      const user = process.env.username;
+      const pass = process.env.password;
 
       const pageTarget = page.target();
       const chart = new URL(params.body.chart);
@@ -40,13 +42,14 @@ const pupeteerHandler = handler({
         await page.click("button[data-name='header-user-menu-sign-in']");
         await page.waitForSelector(".tv-signin-dialog__toggle-email");
         await page.click(".tv-signin-dialog__toggle-email");
-        await page.$eval(
-          "input[name=username]",
-          (el) => (el.value = process.env.username || "")
-        );
+        // @ts-ignore
+        await page.$eval("input[name=username]", (el: any, user) => {
+          return (el.value = user);
+        });
         await page.$eval(
           "input[name=password]",
-          (el) => (el.value = process.env.password || "")
+          // @ts-ignore
+          (el: any, pass: any) => (el.value = pass)
         );
 
         await page.click("button[type=submit]");
@@ -81,7 +84,7 @@ const pupeteerHandler = handler({
     } catch (error) {
       console.error(error);
     } finally {
-      await browser.close();
+      // await browser.close();
     }
   },
 });
