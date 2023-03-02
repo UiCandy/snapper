@@ -15,6 +15,7 @@ const pupeteerHandler = handler({
       defaultViewport: null, //Defaults to an 800x600 viewport
       userDataDir: "./user_data",
       devtools: false,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     try {
