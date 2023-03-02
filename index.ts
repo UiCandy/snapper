@@ -3,8 +3,10 @@ import express from "express";
 import cors from "cors";
 import puppeteer from "puppeteer";
 import axios from "axios";
+import dotenv from "dotenv";
 
 const app = express();
+dotenv.config();
 
 const pupeteerHandler = handler({
   resolve: async (params: any) => {
@@ -12,14 +14,46 @@ const pupeteerHandler = handler({
       headless: true, //  debug mode
       defaultViewport: null, //Defaults to an 800x600 viewport
       userDataDir: "./user_data",
+      devtools: false,
     });
 
     try {
       const page = await browser.newPage();
-      const pageTarget = page.target();
+      page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
 
-      const ticker = params.body.chart.split("%3A")[1].split("&")[0];
-      await page.goto(params.body.chart, { waitUntil: "load" });
+      const pageTarget = page.target();
+      const chart = new URL(params.body.chart);
+      const ticker = chart.search.split("%3A")[1].split("&")[0];
+      await page.goto(chart.origin, { waitUntil: "load" });
+
+      // auth flow
+
+      let signIn =
+        (await page.$(".tv-header__user-menu-button--anonymous")) || "";
+
+      if (signIn) {
+        await page.waitForSelector(".tv-header__user-menu-button--anonymous");
+        await page.click(".tv-header__user-menu-button--anonymous");
+        await page.waitForSelector(
+          "button[data-name='header-user-menu-sign-in']"
+        );
+        await page.click("button[data-name='header-user-menu-sign-in']");
+        await page.waitForSelector(".tv-signin-dialog__toggle-email");
+        await page.click(".tv-signin-dialog__toggle-email");
+        await page.$eval(
+          "input[name=username]",
+          (el) => (el.value = process.env.username || "")
+        );
+        await page.$eval(
+          "input[name=password]",
+          (el) => (el.value = process.env.password || "")
+        );
+
+        await page.click("button[type=submit]");
+        await page.waitForSelector(".is-authenticated");
+      }
+
+      await page.goto(chart.href, { waitUntil: "load" });
 
       // check if page  has loaded
       await page.waitForSelector(".first-_hkHmHWX");
