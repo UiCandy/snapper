@@ -11,7 +11,7 @@ dotenv.config();
 const pupeteerHandler = handler({
   resolve: async (params: any) => {
     const browser = await puppeteer.launch({
-      headless: true, //  debug mode
+      headless: false, //  debug mode
       defaultViewport: null, //Defaults to an 800x600 viewport
       userDataDir: "./user_data",
       devtools: false,
@@ -23,15 +23,13 @@ const pupeteerHandler = handler({
       const user = process.env.username;
       const pass = process.env.password;
 
-      const pageTarget = page.target();
       const chart = new URL(params.body.chart);
       const ticker = chart.search.split("%3A")[1].split("&")[0];
       await page.goto(chart.origin, { waitUntil: "load" });
 
       // auth flow
 
-      let signIn =
-        (await page.$(".tv-header__user-menu-button--anonymous")) || "";
+      let signIn = (await page.$(".is-not-authenticated")) || null;
 
       if (signIn) {
         await page.waitForSelector(".tv-header__user-menu-button--anonymous");
@@ -42,14 +40,17 @@ const pupeteerHandler = handler({
         await page.click("button[data-name='header-user-menu-sign-in']");
         await page.waitForSelector(".tv-signin-dialog__toggle-email");
         await page.click(".tv-signin-dialog__toggle-email");
-        // @ts-ignore
-        await page.$eval("input[name=username]", (el: any, user) => {
-          return (el.value = user);
-        });
+        await page.$eval(
+          "input[name=username]",
+          (el: any, user) => {
+            el.value = user;
+          },
+          user
+        );
         await page.$eval(
           "input[name=password]",
-          // @ts-ignore
-          (el: any, pass: any) => (el.value = pass)
+          (el: any, pass: any) => (el.value = pass),
+          pass
         );
 
         await page.click("button[type=submit]");
@@ -67,6 +68,8 @@ const pupeteerHandler = handler({
       await page.click(
         'div[data-name="open-image-in-new-tab"] .labelRow-RhC5uhZw'
       );
+
+      const pageTarget = page.target();
 
       const newTarget = await browser.waitForTarget(
         (target) => target.opener() === pageTarget
