@@ -13,7 +13,7 @@ const pupeteerHandler = handler({
     const browser = await puppeteer.launch({
       headless: true, //  debug mode
       defaultViewport: null, //Defaults to an 800x600 viewport
-      userDataDir: "./userData",
+      // userDataDir: "./userData",
       devtools: false,
     });
 
@@ -93,7 +93,7 @@ const pupeteerHandler = handler({
     } catch (error) {
       console.error(error);
     } finally {
-      // await browser.close();
+      await browser.close();
     }
   },
 });
