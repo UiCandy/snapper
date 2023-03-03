@@ -11,9 +11,9 @@ dotenv.config();
 const pupeteerHandler = handler({
   resolve: async (params: any) => {
     const browser = await puppeteer.launch({
-      headless: false, //  debug mode
+      headless: true, //  debug mode
       defaultViewport: null, //Defaults to an 800x600 viewport
-      userDataDir: "./user_data",
+      userDataDir: "./userData",
       devtools: false,
     });
 
@@ -57,6 +57,10 @@ const pupeteerHandler = handler({
         await page.waitForSelector(".is-authenticated");
       }
 
+      await page.screenshot({
+        path: `./dist/data/${ticker + Date.now()}_screenshot.jpg`,
+      });
+
       await page.goto(chart.href, { waitUntil: "load" });
 
       // check if page  has loaded
@@ -68,7 +72,9 @@ const pupeteerHandler = handler({
       await page.click(
         'div[data-name="open-image-in-new-tab"] .labelRow-RhC5uhZw'
       );
-
+      await page.screenshot({
+        path: `./dist/data/${ticker + Date.now()}_screenshot.jpg`,
+      });
       const pageTarget = page.target();
 
       const newTarget = await browser.waitForTarget(
