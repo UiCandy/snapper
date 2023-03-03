@@ -10,20 +10,21 @@ dotenv.config();
 
 const chartHandler = handler({
   resolve: async (params: any) => {
+    const chart = new URL(params.body.chart);
     const browser = await puppeteer.launch({
       headless: true, //  debug mode
       defaultViewport: null, //Defaults to an 800x600 viewport
-      userDataDir: "./userData",
+      // userDataDir: "./userData",
       devtools: false,
     });
+    const context = browser.defaultBrowserContext();
+    context.overridePermissions(chart.origin, ["notifications"]);
 
     try {
       const page = await browser.newPage();
-      page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
+      // page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
       const user = process.env.username;
       const pass = process.env.password;
-
-      const chart = new URL(params.body.chart);
       const ticker = chart.search.split("%3A")[1].split("&")[0];
       await page.goto(chart.origin, { waitUntil: "load" });
 
@@ -69,7 +70,9 @@ const chartHandler = handler({
 
       // check if page  has loaded
       await page.waitForSelector(".first-_hkHmHWX");
-      await page.waitForSelector("#header-toolbar-screenshot");
+      await page.waitForSelector("#header-toolbar-screenshot", {
+        visible: true,
+      });
 
       // click screenshot icon
       await page.click("#header-toolbar-screenshot");
