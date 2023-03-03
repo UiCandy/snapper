@@ -30,13 +30,16 @@ const chartHandler = handler({
       // auth flow
 
       let signIn = (await page.$(".is-not-authenticated")) || null;
-
+      console.log(signIn);
       if (signIn) {
         await page.waitForSelector(".tv-header__user-menu-button--anonymous");
         await page.click(".tv-header__user-menu-button--anonymous");
         await page.waitForSelector(
           "button[data-name='header-user-menu-sign-in']"
         );
+        await page.screenshot({
+          path: `./dist/data/${ticker + Date.now()}_screenshot.jpg`,
+        });
         await page.click("button[data-name='header-user-menu-sign-in']");
         await page.waitForSelector(".tv-signin-dialog__toggle-email");
         await page.click(".tv-signin-dialog__toggle-email");
@@ -47,19 +50,20 @@ const chartHandler = handler({
           },
           user
         );
+        console.log(user, pass);
         await page.$eval(
           "input[name=password]",
           (el: any, pass: any) => (el.value = pass),
           pass
         );
 
+        await page.screenshot({
+          path: `./dist/data/${ticker + Date.now()}_screenshot.jpg`,
+        });
+
         await page.click("button[type=submit]");
         await page.waitForSelector(".is-authenticated");
       }
-
-      await page.screenshot({
-        path: `./dist/data/${ticker + Date.now()}_screenshot.jpg`,
-      });
 
       await page.goto(chart.href, { waitUntil: "load" });
 
