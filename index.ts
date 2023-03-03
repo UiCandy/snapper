@@ -8,12 +8,12 @@ import dotenv from "dotenv";
 const app = express();
 dotenv.config();
 
-const pupeteerHandler = handler({
+const chartHandler = handler({
   resolve: async (params: any) => {
     const browser = await puppeteer.launch({
       headless: true, //  debug mode
       defaultViewport: null, //Defaults to an 800x600 viewport
-      // userDataDir: "./userData",
+      userDataDir: "./userData",
       devtools: false,
     });
 
@@ -100,7 +100,7 @@ const pupeteerHandler = handler({
 
 const repoHandler = handler({
   resolve: async (data: any) => {
-    const username = data.body.username || "uicandy2";
+    const username = data.body.username || "uicandy";
     try {
       const result = await axios.get(
         `https://api.github.com/users/${username}/repos`
@@ -142,8 +142,19 @@ const helloHandler = handler({
   },
 });
 
+const hookHandler = handler({
+  resolve: async (data) => {
+    try {
+      console.log(data);
+    } catch (e) {
+      console.error(e);
+    }
+  },
+});
+
 const routes = {
-  chart: pupeteerHandler,
+  chart: chartHandler,
+  hook: hookHandler,
   hello: method({ GET: helloHandler }),
   repos: method({ GET: repoHandler }),
 };

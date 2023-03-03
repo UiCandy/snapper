@@ -3,4 +3,9 @@
 package-lock.json
 pnpm-lock.yaml
 .env
+<<<<<<< Updated upstream
 /userData
+=======
+./user_data
+user_data
+>>>>>>> Stashed changes
