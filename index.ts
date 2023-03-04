@@ -13,7 +13,7 @@ const snapper = async (chUrl) => {
   const browser = await puppeteer.launch({
     headless: true, //  debug mode
     defaultViewport: null, //Defaults to an 800x600 viewport
-    //  userDataDir: "./userData",
+    userDataDir: "./userData",
     devtools: false,
     args: ["--no-sandbox"],
   });
@@ -159,7 +159,9 @@ app.use(express.json({ type: "application/json" }));
 const hookHandler = handler({
   resolve: async (data: any) => {
     try {
+      // console.log(data.body);
       const charty = await snapper(data.body.chart);
+      console.log(charty);
       axios
         .post(
           `https://api.telegram.org/bot5710062036:AAHcIOPgFQzUOplGiOZ_PNR_kUrRz6wxjak/sendMessage?chat_id=@FlipSignal&text=${encodeURIComponent(
