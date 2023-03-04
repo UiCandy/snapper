@@ -22,7 +22,12 @@ const snapper = async (chUrl) => {
 
   try {
     const page = await browser.newPage();
-    //  page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
+    //  page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));d
+    page.setViewport({
+      width: 1200,
+      height: 628,
+      deviceScaleFactor: 2,
+    });
     const user = process.env.username;
     const pass = process.env.password;
     const ticker = chart.search.split("=")[1].split("&")[0];
@@ -99,7 +104,7 @@ const snapper = async (chUrl) => {
   } catch (error) {
     console.error(error);
   } finally {
-    await browser.close();
+    //  await browser.close();
   }
 };
 
