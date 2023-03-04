@@ -22,7 +22,7 @@ const snapper = async (chUrl) => {
 
   try {
     const page = await browser.newPage();
-    //  page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
+    page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
     const user = process.env.username;
     const pass = process.env.password;
     const ticker = chart.search.split("=")[1].split("&")[0];
@@ -153,6 +153,8 @@ const helloHandler = handler({
     }
   },
 });
+
+app.use(express.json({ type: "application/json" }));
 
 const hookHandler = handler({
   resolve: async (data: any) => {
