@@ -13,7 +13,7 @@ const snapper = async (chUrl) => {
   const browser = await puppeteer.launch({
     headless: true, //  debug mode
     defaultViewport: null, //Defaults to an 800x600 viewport
-    userDataDir: "./userData",
+    //  userDataDir: "./userData",
     devtools: false,
     args: ["--no-sandbox"],
   });
