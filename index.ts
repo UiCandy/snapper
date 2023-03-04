@@ -11,7 +11,7 @@ dotenv.config();
 const snapper = async (chUrl) => {
   const chart = new URL(chUrl);
   const browser = await puppeteer.launch({
-    headless: true, //  debug mode
+    headless: false, //  debug mode
     defaultViewport: null, //Defaults to an 800x600 viewport
     userDataDir: "./userData",
     devtools: false,
@@ -22,12 +22,7 @@ const snapper = async (chUrl) => {
 
   try {
     const page = await browser.newPage();
-    //  page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));d
-    page.setViewport({
-      width: 1200,
-      height: 628,
-      deviceScaleFactor: 2,
-    });
+    //  page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
     const user = process.env.username;
     const pass = process.env.password;
     const ticker = chart.search.split("=")[1].split("&")[0];
