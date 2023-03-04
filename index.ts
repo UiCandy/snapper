@@ -11,7 +11,7 @@ dotenv.config();
 const snapper = async (chUrl) => {
   const chart = new URL(chUrl);
   const browser = await puppeteer.launch({
-    headless: false, //  debug mode
+    headless: true, //  debug mode
     defaultViewport: null, //Defaults to an 800x600 viewport
     userDataDir: "./userData",
     devtools: false,
