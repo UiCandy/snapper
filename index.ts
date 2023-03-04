@@ -15,7 +15,7 @@ const snapper = async (chUrl) => {
     defaultViewport: null, //Defaults to an 800x600 viewport
     userDataDir: "./userData",
     devtools: false,
-    args: ["--no-sandbox", "--use-gl=swiftshader"],
+    args: ["--no-sandbox"],
   });
   const context = browser.defaultBrowserContext();
   context.overridePermissions(chart.origin, ["notifications"]);
