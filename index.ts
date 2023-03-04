@@ -13,8 +13,7 @@ const snapper = async (chUrl) => {
   const browser = await puppeteer.launch({
     headless: true, //  debug mode
     defaultViewport: null, //Defaults to an 800x600 viewport
-    //  userDataDir: "./userData",
-    devtools: false,
+    userDataDir: "./userData2",
     args: ["--no-sandbox"],
   });
   const context = browser.defaultBrowserContext();
@@ -72,8 +71,9 @@ const snapper = async (chUrl) => {
       visible: true,
     });
 
-    // click screenshot icon
     await page.click("#header-toolbar-screenshot");
+    // click screenshot icon
+
     await page.click(
       'div[data-name="open-image-in-new-tab"] .labelRow-RhC5uhZw'
     );
@@ -99,6 +99,7 @@ const snapper = async (chUrl) => {
   } catch (error) {
     console.error(error);
   } finally {
+    console.log("finally");
     await browser.close();
   }
 };
