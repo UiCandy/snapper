@@ -12,6 +12,7 @@ const snapper = async (chUrl) => {
   const chart = new URL(chUrl);
   const browser = await chromium.launch({
     headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   try {
