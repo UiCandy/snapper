@@ -14,6 +14,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "nodemon": "^2.0.21",
+    "playwright": "^1.31.2",
     "puppeteer": "^19.7.2",
     "rendertron-middleware": "^0.1.5"
   },
