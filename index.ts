@@ -94,7 +94,7 @@ const hookHandler = handler({
   resolve: async (data: any) => {
     try {
       console.log(data.body);
-      const charty = await snapper(data.body.chart);
+      const charty = (await snapper(data.body.chart)) || "";
 
       console.log(data.body.content, charty);
 
