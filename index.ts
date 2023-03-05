@@ -10,6 +10,7 @@ const app = express();
 dotenv.config();
 
 const snapper = async (chUrl) => {
+  const chart = new URL(chUrl);
   const browser = await chromium.launch({
     headless: true,
   });
@@ -20,7 +21,8 @@ const snapper = async (chUrl) => {
     const page = await browser.newPage({ deviceScaleFactor: 2 });
     const user: any = process.env.username;
     const pass: any = process.env.password;
-    await page.goto("https://tradingview.com");
+    const ticker = chart.search.split("=")[1].split("&")[0];
+    await page.goto(chart.origin, { waitUntil: "load" });
     await page.click(".tv-header__user-menu-button--anonymous");
     await page.click("button[data-name='header-user-menu-sign-in']");
     await page.click(".tv-signin-dialog__toggle-email");
@@ -29,10 +31,7 @@ const snapper = async (chUrl) => {
     await page.click("button[type=submit]");
     await page.waitForSelector(".is-authenticated");
 
-    await page.goto(
-      "https://www.tradingview.com/chart/YjVZ6dqV/?symbol=BINANCE:LINAUSDT&interval=60",
-      { waitUntil: "load" }
-    );
+    await page.goto(chart.href, { waitUntil: "load" });
     await page.click("#header-toolbar-screenshot");
     // click screenshot icon
 
@@ -40,6 +39,11 @@ const snapper = async (chUrl) => {
     await page.click(
       'div[data-name="open-image-in-new-tab"] .labelRow-RhC5uhZw'
     );
+
+    await page.screenshot({
+      path: `./dist/data/${ticker + Date.now()}_screenshot.jpg`,
+    });
+
     const tvSnap = await newPagePromise;
     await tvSnap.waitForLoadState();
 
