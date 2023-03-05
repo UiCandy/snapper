@@ -1,7 +1,6 @@
 import { handler, initBridge, method } from "bridge";
 import express from "express";
 import cors from "cors";
-import puppeteer from "puppeteer";
 import { chromium } from "playwright";
 import axios from "axios";
 import dotenv from "dotenv";
@@ -88,54 +87,6 @@ const repoHandler = handler({
   },
 });
 
-const helloHandler = handler({
-  resolve: async () => {
-    const browser = await chromium.launch({
-      headless: true,
-    });
-
-    try {
-      const context = await browser.newContext();
-      await context.grantPermissions(["notifications"]);
-      const page = await browser.newPage({ deviceScaleFactor: 2 });
-      const user: any = process.env.username;
-      const pass: any = process.env.password;
-      await page.goto("https://tradingview.com");
-      await page.click(".tv-header__user-menu-button--anonymous");
-      await page.click("button[data-name='header-user-menu-sign-in']");
-      await page.click(".tv-signin-dialog__toggle-email");
-      await page.locator("input[name=username]").fill(user);
-      await page.locator("input[name=password]").fill(pass);
-      await page.click("button[type=submit]");
-      await page.waitForSelector(".is-authenticated");
-
-      await page.goto(
-        "https://www.tradingview.com/chart/YjVZ6dqV/?symbol=BINANCE:LINAUSDT&interval=60",
-        { waitUntil: "load" }
-      );
-      await page.click("#header-toolbar-screenshot");
-      // click screenshot icon
-
-      const newPagePromise = page.waitForEvent("popup");
-      await page.click(
-        'div[data-name="open-image-in-new-tab"] .labelRow-RhC5uhZw'
-      );
-      const tvSnap = await newPagePromise;
-      await tvSnap.waitForLoadState();
-
-      await tvSnap.title();
-      await tvSnap.waitForSelector(".tv-snapshot-image");
-      const chartLink = await tvSnap.url();
-
-      return chartLink || "om";
-    } catch (e) {
-      console.error(e);
-    } finally {
-      await browser.close();
-    }
-  },
-});
-
 const hookHandler = handler({
   resolve: async (data: any) => {
     try {
@@ -152,7 +103,7 @@ const hookHandler = handler({
           {}
         )
         .then(function () {
-          console.log("beforeURL");
+          console.log(encodeURIComponent(data.body.content + charty));
         })
         .catch(function (error) {
           console.log(error);
@@ -166,7 +117,6 @@ const hookHandler = handler({
 const routes = {
   chart: chartHandler,
   hook: hookHandler,
-  hello: method({ GET: helloHandler }),
   repos: method({ GET: repoHandler }),
 };
 
