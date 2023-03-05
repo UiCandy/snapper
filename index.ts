@@ -18,7 +18,9 @@ const snapper = async (chUrl) => {
   try {
     const context = await browser.newContext();
     await context.grantPermissions(["notifications"]);
-    const page = await browser.newPage({ deviceScaleFactor: 2 });
+    const page = await browser.newPage({
+      viewport: null,
+    });
     const user: any = process.env.username;
     const pass: any = process.env.password;
     const ticker = chart.search.split("=")[1].split("&")[0];
