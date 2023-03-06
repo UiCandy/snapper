@@ -49,6 +49,6 @@ const routes = {
 
 app.use(cors());
 app.use("", initBridge({ routes }).expressMiddleware());
-const server = app.listen(8081, () => {
+app.listen(8081, () => {
   console.log(`Listening on port 8081`);
 });
