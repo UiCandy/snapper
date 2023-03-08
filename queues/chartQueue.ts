@@ -23,9 +23,9 @@ chartQueue.on("succeeded", function (job, [chUrl, content]) {
   console.log("Ready to be served 😋 " + job.id + content);
   axios
     .post(
-      `https://api.telegram.org/bot5710062036:AAHcIOPgFQzUOplGiOZ_PNR_kUrRz6wxjak/sendPhoto?chat_id=@FlipSignal&photo=${chUrl}&caption=${encodeURIComponent(
-        content
-      )}`,
+      `https://api.telegram.org/bot${process.env.TL_TOKEN}/sendPhoto?chat_id=${
+        process.env.TL_BOT
+      }&photo=${chUrl}&caption=${encodeURIComponent(content)}`,
       {}
     )
     .then(function (res) {
