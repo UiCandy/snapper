@@ -1,6 +1,7 @@
 import { chromium } from "playwright";
 
 const snapper = async (chUrl) => {
+  console.log(process.env.USERNAME, process.env.PASSWORD);
   const chart = new URL(chUrl);
   const browser = await chromium.launch({
     headless: true,
@@ -13,8 +14,9 @@ const snapper = async (chUrl) => {
     const page = await browser.newPage({
       viewport: null,
     });
-    const user: any = process.env.username;
-    const pass: any = process.env.password;
+    const user: any = process.env.USERNAME;
+    const pass: any = process.env.PASSWORD;
+    console.log(user, pass);
     const ticker = chart.search.split("=")[1].split("&")[0];
     await page.goto(chart.origin, { waitUntil: "load" });
     await page.click(".tv-header__user-menu-button--anonymous");
