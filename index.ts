@@ -4,6 +4,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import axios from "axios";
 import API from "kucoin-node-sdk";
+import { schedule } from "node-cron";
+import chalk from "chalk";
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -87,21 +89,40 @@ const symbolHandler = handler({
 });
 
 const orderBookHandler = handler({
-  resolve: async (symbol) => {
-    const getOrderbook = await API.rest.Market.OrderBook.getLevel2_100(symbol);
+  resolve: async ({ query }: any) => {
+    const getOrderbook = await API.rest.Market.OrderBook.getLevel2_100(
+      query.symbol
+    );
     return getOrderbook;
   },
 });
 
+const chartDataHandler = handler({
+  resolve: async ({ query }: Record<string, any>) => {
+    const getPriceData = await API.rest.Market.Histories.getMarketCandles(
+      query.symbol,
+      query.tf
+    );
+    return getPriceData;
+  },
+});
+
 const cmcHandler = handler({
-  resolve: async (symbol) => {
+  resolve: async ({ query }: any) => {
     try {
       let results: any = [],
-        start = 400;
+        start = 1;
+
+      const limit = 100,
+        market_min = 200000,
+        market_max = 20000000,
+        vol24_min = 200000,
+        sort = "market_cap";
       do {
         const response = await axios.get(
-          `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=${start}&limit=100&market_cap_min=200000&market_cap_max=200000000&volume_24h_min=200000&sort=market_cap&sort_dir=desc&cryptocurrency_type=all&tag=all`
+          `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=${start}&limit=${limit}&market_cap_min=${market_min}&market_cap_max=${market_max}&volume_24h_min=${vol24_min}&sort=${sort}&sort_dir=desc&cryptocurrency_type=all&tag=all`
         );
+
         results = [...results, ...response.data.data];
         start += 100;
       } while (start < 800);
@@ -121,14 +142,20 @@ const cmcHandler = handler({
   },
 });
 
+const job = schedule("* 15 * * * *", () => {
+  console.log(chalk.green("Running scheduled job"));
+  cmcHandler.resolve("");
+});
+
 const routes = {
   chart: chartHandler,
   hook: hookHandler,
   orders: method({ GET: orderBookHandler }),
   symbols: method({ GET: symbolHandler }),
   tickers: method({ GET: tickerHandler }),
-  volume: method({ GET: cmcHandler }),
+  refresh: method({ GET: cmcHandler }),
   pairs: method({ GET: pairHandler }),
+  feed: method({ GET: chartDataHandler }),
 };
 
 app.use(cors());
