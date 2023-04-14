@@ -23,17 +23,15 @@ chartQueue.on("succeeded", function (job, [chUrl, content]) {
   console.log("Ready to be served 😋 " + job.id + content);
   axios
     .post(
-      `https://api.telegram.org/bot${process.env.TL_TOKEN}/sendPhoto?chat_id=${
+      `https://api.telegram.org/bot${process.env.TL_TOKEN}/sendPhoto?chat_id=@${
         process.env.TL_BOT
       }&photo=${chUrl}&caption=${encodeURIComponent(content)}`,
       {}
     )
     .then(function (res) {
-      console.log(res);
       return [chUrl, content];
     })
     .catch(function (error) {
-      console.log(error);
       throw new Error(error);
     });
 });
