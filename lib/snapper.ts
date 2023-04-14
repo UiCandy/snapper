@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 const snapper = async (chUrl) => {
   const chart = new URL(chUrl);
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
@@ -32,7 +32,7 @@ const snapper = async (chUrl) => {
 
     const newPagePromise = page.waitForEvent("popup");
     await page.click(
-      'div[data-name="open-image-in-new-tab"] .labelRow-RhC5uhZw'
+      'div[data-name="open-image-in-new-tab"] .labelRow-jFqVJoPk'
     );
 
     await page.screenshot({
