@@ -1,7 +1,6 @@
 import { handler, initBridge, method } from "bridge";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import axios from "axios";
 import API from "kucoin-node-sdk";
 import { schedule } from "node-cron";
@@ -10,17 +9,14 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
-import { config, dbConfig } from "./api/config";
+import { config, dbConfig, cmcToken } from "./api/config";
 import { generateLink } from "./queues/chartQueue";
 
 const app = express();
-dotenv.config();
 const fireBase: any = initializeApp(dbConfig);
 API.init(config);
 axios.interceptors.request.use(function (config) {
-  const token = process.env.CMC_KEY;
-  config.headers["X-CMC_PRO_API_KEY"] = token;
-
+  config.headers["X-CMC_PRO_API_KEY"] = cmcToken;
   return config;
 });
 
@@ -99,11 +95,79 @@ const orderBookHandler = handler({
 
 const chartDataHandler = handler({
   resolve: async ({ query }: Record<string, any>) => {
+    const eightMonthsAgo =
+      new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() - 8,
+        new Date().getDate()
+      ).getTime() / 1000;
+    const today = new Date().getTime();
     const getPriceData = await API.rest.Market.Histories.getMarketCandles(
       query.symbol,
-      query.tf
+      query.tf,
+      {
+        startAt: eightMonthsAgo,
+      }
     );
     return getPriceData;
+  },
+});
+
+const dexVolHandler = handler({
+  resolve: async ({ query }: Record<string, any>) => {
+    const dexVol = await axios.get("https://api.llama.fi/protocols");
+
+    return dexVol;
+  },
+});
+
+const dexHandler = handler({
+  resolve: async ({ query }: Record<string, any>) => {
+    const chains = await axios.get("https://api.llama.fi/chains");
+
+    return chains;
+  },
+});
+
+const protocolHandler = handler({
+  resolve: async ({ query }: Record<string, any>) => {
+    const protocols = await axios.get(
+      `https://api.llama.fi/overview/dexs/${query.chain}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=totalVolume`
+    );
+    return protocols;
+  },
+});
+
+const dexSummaryHandler = handler({
+  resolve: async ({ query }: Record<string, any>) => {
+    const protocols = await axios.get(
+      `https://api.llama.fi/summary/dexs/${query.protocol}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=totalVolume`
+    );
+    return protocols;
+  },
+});
+
+const feesHandler = handler({
+  resolve: async ({ query }: Record<string, any>) => {
+    const fees = await axios.get(
+      `https://api.llama.fi/overview/fees/${query.chain}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=dailyFees`
+    );
+    return fees;
+  },
+});
+
+const summaryHandler = handler({
+  resolve: async ({ query }: Record<string, any>) => {
+    const fees = await axios.get(
+      `https://api.llama.fi/summary/fees/${query.protocol}?dataType=dailyFees`
+    );
+    return fees;
+  },
+});
+
+const healthHandler = handler({
+  resolve: async () => {
+    return "🌳It's running and it's running away ...🌳";
   },
 });
 
@@ -134,6 +198,7 @@ const cmcHandler = handler({
 
       const quotesRef = await setDoc(doc(db, "quotes", "cmcpairs"), hashMap);
       console.log("done", quotesRef);
+      console.log("Running scheduled job from inside - without cron");
       return results;
     } catch (ex) {
       // error
@@ -143,19 +208,34 @@ const cmcHandler = handler({
 });
 
 const job = schedule("* 15 * * * *", () => {
-  console.log(chalk.green("Running scheduled job"));
+  console.log("Running scheduled job");
   cmcHandler.resolve("");
 });
 
 const routes = {
   chart: chartHandler,
   hook: hookHandler,
+  health: method({ GET: healthHandler }),
   orders: method({ GET: orderBookHandler }),
   symbols: method({ GET: symbolHandler }),
   tickers: method({ GET: tickerHandler }),
   refresh: method({ GET: cmcHandler }),
   pairs: method({ GET: pairHandler }),
   feed: method({ GET: chartDataHandler }),
+  dex: {
+    vol: {
+      volume: method({ GET: dexVolHandler }),
+      summary: method({ GET: dexSummaryHandler }),
+    },
+    tvl: {
+      chains: method({ GET: dexHandler }),
+      protocol: method({ GET: protocolHandler }),
+    },
+    fees: {
+      total: method({ GET: feesHandler }),
+      summary: method({ GET: summaryHandler }),
+    },
+  },
 };
 
 app.use(cors());

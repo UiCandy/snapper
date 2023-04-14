@@ -7,6 +7,7 @@
     "dev": "nodemon ./index.ts"
   },
   "dependencies": {
+    "@binance/connector": "^2.0.1",
     "axios": "^1.3.4",
     "bee-queue": "^1.5.0",
     "bridge": "^2.0.45",
