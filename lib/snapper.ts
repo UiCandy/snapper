@@ -3,8 +3,14 @@ import { chromium } from "playwright";
 const snapper = async (chUrl) => {
   const chart = new URL(chUrl);
   const browser = await chromium.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: false,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--window-size=960,600",
+      "--use-gl=egl",
+      "--ignore-gpu-blocklist",
+    ],
   });
 
   try {
@@ -20,10 +26,10 @@ const snapper = async (chUrl) => {
     await page.goto(chart.origin, { waitUntil: "load" });
     await page.click(".tv-header__user-menu-button--anonymous");
     await page.click("button[data-name='header-user-menu-sign-in']");
-    await page.click(".tv-signin-dialog__toggle-email");
-    await page.locator("input[name=username]").fill(user);
-    await page.locator("input[name=password]").fill(pass);
-    await page.click("button[type=submit]");
+    await page.click("button[name='Email']");
+    await page.locator("input[name=id_username]").fill(user);
+    await page.locator("input[name=id_password]").fill(pass);
+    await page.locator('button:has-text("Sign in")').click();
     await page.waitForSelector(".is-authenticated");
 
     await page.goto(chart.href, { waitUntil: "load" });
