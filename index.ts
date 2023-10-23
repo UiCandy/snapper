@@ -77,6 +77,15 @@ const tickerHandler = handler({
   },
 });
 
+const coinalysisHandler = handler({
+  resolve: async ({ query }: Record<string, any>) => {
+    const data = await axios.get(
+      "https://www.kucoin.com/_api/quicksilver/currency-detail/symbols/dataAnalysis/ELON?coin=ELON&dataAnalysisTimeDimensionEnum=TWENTY_FOUR_HOUR&dataAnalysisTypeEnum=SPOT_BUY_AMT_DIVIDE_SPOT_SELL_AMT&lang=en_US"
+    );
+
+    return data;
+  },
+});
 const symbolHandler = handler({
   resolve: async () => {
     const getSymbolsList = await API.rest.Market.Symbols.getSymbolsList();
@@ -115,7 +124,9 @@ const chartDataHandler = handler({
 
 const dexVolHandler = handler({
   resolve: async ({ query }: Record<string, any>) => {
-    const dexVol = await axios.get("https://api.llama.fi/protocols");
+    const { data: dexVol } = await axios.get(
+      "https://api.llama.fi/overview/dexs?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=dailyVolume"
+    );
 
     return dexVol;
   },
@@ -123,7 +134,7 @@ const dexVolHandler = handler({
 
 const dexHandler = handler({
   resolve: async ({ query }: Record<string, any>) => {
-    const chains = await axios.get("https://api.llama.fi/chains");
+    const { data: chains } = await axios.get("https://api.llama.fi/chains");
 
     return chains;
   },
@@ -131,7 +142,7 @@ const dexHandler = handler({
 
 const protocolHandler = handler({
   resolve: async ({ query }: Record<string, any>) => {
-    const protocols = await axios.get(
+    const { data: protocols } = await axios.get(
       `https://api.llama.fi/overview/dexs/${query.chain}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=totalVolume`
     );
     return protocols;
@@ -140,7 +151,7 @@ const protocolHandler = handler({
 
 const dexSummaryHandler = handler({
   resolve: async ({ query }: Record<string, any>) => {
-    const protocols = await axios.get(
+    const { data: protocols } = await axios.get(
       `https://api.llama.fi/summary/dexs/${query.protocol}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=totalVolume`
     );
     return protocols;
@@ -149,7 +160,7 @@ const dexSummaryHandler = handler({
 
 const feesHandler = handler({
   resolve: async ({ query }: Record<string, any>) => {
-    const fees = await axios.get(
+    const { data: fees } = await axios.get(
       `https://api.llama.fi/overview/fees/${query.chain}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=dailyFees`
     );
     return fees;
@@ -158,7 +169,7 @@ const feesHandler = handler({
 
 const summaryHandler = handler({
   resolve: async ({ query }: Record<string, any>) => {
-    const fees = await axios.get(
+    const { data: fees } = await axios.get(
       `https://api.llama.fi/summary/fees/${query.protocol}?dataType=dailyFees`
     );
     return fees;
@@ -217,14 +228,15 @@ const routes = {
   hook: hookHandler,
   health: method({ GET: healthHandler }),
   orders: method({ GET: orderBookHandler }),
+  coinalysis: method({ GET: coinalysisHandler }),
   symbols: method({ GET: symbolHandler }),
   tickers: method({ GET: tickerHandler }),
   refresh: method({ GET: cmcHandler }),
   pairs: method({ GET: pairHandler }),
   feed: method({ GET: chartDataHandler }),
   dex: {
+    volume: method({ GET: dexVolHandler }),
     vol: {
-      volume: method({ GET: dexVolHandler }),
       summary: method({ GET: dexSummaryHandler }),
     },
     tvl: {
