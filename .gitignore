@@ -5,3 +5,6 @@ pnpm-lock.yaml
 .env
 /userData
 settings.json
+
+playwright/.auth
+/data/udd

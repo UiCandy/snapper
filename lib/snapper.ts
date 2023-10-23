@@ -2,8 +2,9 @@ import { chromium } from "playwright";
 
 const snapper = async (chUrl) => {
   const chart = new URL(chUrl);
-  const browser = await chromium.launch({
+  const browser = await chromium.launchPersistentContext("./data/udd", {
     headless: false,
+    viewport: null,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -14,23 +15,30 @@ const snapper = async (chUrl) => {
   });
 
   try {
-    const context = await browser.newContext();
-    await context.grantPermissions(["notifications"]);
-    const page = await browser.newPage({
-      viewport: null,
-    });
-    const user: any = process.env.USERNAME;
-    const pass: any = process.env.PASSWORD;
-
+    // const context = await browser.new
+    // await context.grantPermissions(["notifications"]);
+    const page = await browser.newPage();
     const ticker = chart.search.split("=")[1].split("&")[0];
-    await page.goto(chart.origin, { waitUntil: "load" });
-    await page.click(".tv-header__user-menu-button--anonymous");
-    await page.click("button[data-name='header-user-menu-sign-in']");
-    await page.click("button[name='Email']");
-    await page.locator("input[name=id_username]").fill(user);
-    await page.locator("input[name=id_password]").fill(pass);
-    await page.locator('button:has-text("Sign in")').click();
-    await page.waitForSelector(".is-authenticated");
+
+    if (!page.waitForSelector(".is-authenticated")) {
+      const user: any = process.env.USERNAME;
+      const pass: any = process.env.PASSWORD;
+      const code: any = process.env.BCODE;
+
+      await page.goto(chart.origin, { waitUntil: "load" });
+      await page.click(".tv-header__user-menu-button--anonymous");
+      await page.click("button[data-name='header-user-menu-sign-in']");
+      await page.click("button[name='Email']");
+      await page.click("span.label-vyj6oJxw");
+      await page.locator("input[name=id_username]").fill(user);
+      await page.locator("input[name=id_password]").fill(pass);
+
+      await page.locator('button:has-text("Sign in")').click();
+      await page.waitForSelector("#id_code");
+      await page.locator("input[name=id_code]").fill(code);
+
+      await page.waitForSelector(".is-authenticated");
+    }
 
     await page.goto(chart.href, { waitUntil: "load" });
     await page.click("#header-toolbar-screenshot");
