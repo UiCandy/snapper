@@ -19,13 +19,13 @@ const snapper = async (chUrl) => {
     // await context.grantPermissions(["notifications"]);
     const page = await browser.newPage();
     const ticker = chart.search.split("=")[1].split("&")[0];
-
-    if (!page.waitForSelector(".is-authenticated")) {
+    await page.goto(chart.origin, { waitUntil: "load" });
+    const isAuth = page.locator(".is-authenticated");
+    if (!!isAuth) {
       const user: any = process.env.USERNAME;
       const pass: any = process.env.PASSWORD;
       const code: any = process.env.BCODE;
 
-      await page.goto(chart.origin, { waitUntil: "load" });
       await page.click(".tv-header__user-menu-button--anonymous");
       await page.click("button[data-name='header-user-menu-sign-in']");
       await page.click("button[name='Email']");
@@ -64,9 +64,9 @@ const snapper = async (chUrl) => {
 
     return chartSrc;
   } catch (e) {
-    console.error(e);
+    // console.error(e);
   } finally {
-    await browser.close();
+    // await browser.close();
   }
 };
 
